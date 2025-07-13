@@ -1,4 +1,3 @@
 # week11
 
-## Trigger tfsec
-This is a test edit to invoke tfsec.
+![tfsec](https://github.com/edratemja/week11/actions/workflows/tfsec.yml/badge.svg)

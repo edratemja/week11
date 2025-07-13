@@ -48,7 +48,15 @@ data "aws_ami" "ubuntu" {
 resource "aws_instance" "web" {
   ami                    = data.aws_ami.ubuntu.id
   instance_type          = "t2.micro"
-  vpc_security_group_ids = [aws_security_group.web-sg.id]
+  vpc_security_group_ids = [aws_security_group.web_sg.id]
+
+  root_block_device {
+    encrypted = true
+  }
+
+  metadata_options {
+    http_tokens = "required"
+  }
 
   user_data = <<-EOF
               #!/bin/bash
@@ -60,22 +68,27 @@ resource "aws_instance" "web" {
               EOF
 }
 
-resource "aws_security_group" "web-sg" {
-  name = "${random_pet.sg.id}-sg"
+resource "aws_security_group" "web_sg" {
+  name        = "web-sg"
+  description = "Security group for web server"
+
   ingress {
-    from_port   = 8080
-    to_port     = 8080
+    description = "Allow HTTP from anywhere"
+    from_port   = 80
+    to_port     = 80
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
-  // connectivity to ubuntu mirrors is required to run `apt-get update` and `apt-get install apache2`
+
   egress {
+    description = "Allow all outbound"
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
 }
+
 
 output "web-address" {
   value = "${aws_instance.web.public_dns}:8080"
